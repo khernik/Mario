@@ -8,8 +8,10 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.HashMap;
+import java.util.Iterator;
 import Game.*;
 import Terrain.*;
+import com.google.common.collect.*;
 
 /**
  * Mario
@@ -22,17 +24,17 @@ public class Mario extends Character
     /**
      * @var Maximum Mario's velovity (px/frame)
      */
-    private static final int vk = 7;
+    public static final int vk = 7;
     
     /**
      * @var Mario's initial velocity when running
      */
-    private static final int v0 = 3;
+    public static final int v0 = 3;
     
     /**
      * @var Mario's acceleration
      */
-    private static final double acceleration = 5;
+    public static final double acceleration = 4;
     
     /**
      * @var Mario's position in the world (relative to the surface)
@@ -47,28 +49,32 @@ public class Mario extends Character
     /**
      * @var Map of different states of mario and images links to its animations
      */
-    private Map<String, Image> statesMap;
+    private Map<String, ImageIcon> statesMap;
     {
-        statesMap = new HashMap<String, Image>();
-        statesMap.put("standing", new ImageIcon("standing-mario.gif").getImage());
-        statesMap.put("running", new ImageIcon("running-mario.gif").getImage());
+        statesMap = new HashMap<String, ImageIcon>();
+        statesMap.put("standing", new ImageIcon("standing-mario.gif"));
+        statesMap.put("running", new ImageIcon("running-mario.gif"));
     };
     
     /**
      * @var Is mario jumping?
      */
-    public boolean jump = false;
+    private boolean jump = false;
     
     /**
-     * @var Height of the block where space was hit
+     * @var Has mario bumped from something?
      */
-    public int initialYJumpPosition;
+    private boolean bump = false;
     
     /**
-     * @var Initial jump time in milliseconds
+     * @var Initial jump time in milliseconds, difference used for wp
+     * @see Physics wp attribute
      */
     private long initialJumpTime;
     
+    /**
+     * @var Jumping physics
+     */
     private Physics wp;
     
     /**
@@ -79,33 +85,18 @@ public class Mario extends Character
     public Mario(int y)
     {
         // Set mario on the horizontal axis
-        this.x = fixedPosition;
-        
-        // Set mario on the vertical axis
-        this.y = 600 - y;
+        this.x = fixedPositionFromLeftScreenBorder;
         
         // Set initial relative mario position
-        relativePosition = fixedPosition;
+        this.updateRelativeTerrainPosition(this.x);
         
-        // Set mario states (animations)
-        setStates();
+        // Set mario in the first state while he's standing
+        image = statesMap.get("standing");
+
+        // Set mario on the vertical axis
+        this.y = Main.height - getImageHeight() - y + 1;
         
-        // Set mario in the first state
-        image = images.get(0);
-        
-        visible = true;        
-    }
-    
-    /**
-     * Set mario states - add images to the array
-     */
-    private void setStates()
-    {
-        for(int i = 0; i < states.length; i++) 
-        {
-            ImageIcon icon = new ImageIcon(states[i] + ".gif");
-            images.add(icon.getImage());
-        }
+        visible = true;
     }
     
     /**
@@ -113,17 +104,29 @@ public class Mario extends Character
      * 
      * @return 
      */
-    public int getRelativePosition()
+    public int getRelativeTerrainPosition()
     {
-        return relativePosition;
+        return relativeTerrainPosition;
+    }
+    
+    /**
+     * Returns mario's position from the left screen border
+     * 
+     * @return 
+     */
+    public int getFixedPositionFromLeftScreenBorder()
+    {
+        return fixedPositionFromLeftScreenBorder;
     }
     
     /**
      * Move mario
+     * 
+     * @param int Position x coordinate
      */
-    public void updateRelativePosition(int pos)
+    public void updateRelativeTerrainPosition(int pos)
     {
-        relativePosition = pos;
+        relativeTerrainPosition = pos;
     }
     
     /**
@@ -135,59 +138,135 @@ public class Mario extends Character
     {
         return jump;
     }
+    
+    /**
+     * Has mario bumped?
+     * 
+     * @return 
+     */
+    public boolean hasMarioBumped()
+    {
+        return bump;
+    }
 
+    /**
+     * Change mario's jumping boolean state
+     * 
+     * @param state 
+     */
+    public void setMarioJumpingState(boolean state)
+    {
+        this.jump = state;
+    }
+    
+    /**
+     * Change mario's bumping boolean state
+     * 
+     * @param state 
+     */
+    public void setMarioBumpingState(boolean state)
+    {
+        this.bump = state;
+    }
+    
     /**
      * Perform jump
      */
     public void jump()
     {
-        int vel;
-        int y = 500;
-        vel = wp.gravitationalPull(12);
-        this.y += (-vel);
-        /*
-        double t = ( System.currentTimeMillis() - initialJumpTime )/100;
-        
-        int h, a;
-        h = (int)Math.floor(WorldPhysics.gravitationalPull(initialYJumpPosition-200, t/10));
-        
-        if(h > 0) {
-            y = initialYJumpPosition - (300 - h);
-        }
-        else
-        {
-            a = (int)Math.floor(WorldPhysics.gravitationalPull(initialYJumpPosition-200, t/10));
-            System.out.println(a);
-            y = 300 - h;
-        }*/
-        //System.out.println(300-h);
+        this.y += (-wp.gravitationalPull(12));
     }
     
+    private int flag = 0;
+    /**
+     * Check collisions
+     * 
+     * @param terrainMap
+     * @return 
+     */
+    public boolean checkCollisions(ListMultimap<String, int[]> terrainMap, List<Terrain> terrain)
+    {
+        boolean collides = false;
+        
+        if(isMarioJumping()) flag = 0;
+        
+        int i = 0; 
+        for (Map.Entry<String, int[]> entry : terrainMap.entries())
+        {
+            // Check x mario borders
+            if(getRelativeTerrainPosition() > entry.getValue()[0] && 
+               getRelativeTerrainPosition() < entry.getValue()[2]) 
+            {
+                // Check top borders
+                if( Main.height - getImageHeight() - getY() > entry.getValue()[1] - 12 && 
+                    Main.height - getImageHeight() - getY() < entry.getValue()[1] || flag == 1)
+                {
+                    y = Main.height - getImageHeight() - entry.getValue()[1];
+                    collides = true;
+                    setMarioJumpingState(false);
+                    break;
+                }
+                // Check bottom borders
+                else if( Main.height - getY() < entry.getValue()[3] + 12 && 
+                         Main.height - getY() > entry.getValue()[3] && !hasMarioBumped())
+                {
+                    y = Main.height - entry.getValue()[3];
+                    collides = true;
+                    setMarioJumpingState(false);
+                    if(terrain.get(i) instanceof DestroyableBlock) {
+                        ((DestroyableBlock)terrain.get(i)).hit();
+                        terrainMap.remove(entry.getKey(), entry.getValue());
+                    }
+                    break;
+                }
+                // Check standing on the surface
+                else if (Main.height - getImageHeight() - getY() == entry.getValue()[1] && !isMarioJumping())
+                {
+                    collides = true;
+                }
+            }
+            i++;
+        }
+        
+        return collides;
+    }
+    
+    /**
+     * Key pressed bidings
+     * 
+     * @param e 
+     */
     @Override
     public void keyPressed(KeyEvent e)
     {
         int key = e.getKeyCode();
         
         if(key == KeyEvent.VK_RIGHT) {
-            image = images.get(1);
+            image = statesMap.get("running");
         }
         
-        if(key == KeyEvent.VK_SPACE && jump == false) {
-            wp = new Physics();
-            jump = true;
-            initialYJumpPosition = getY();
-            initialJumpTime = System.currentTimeMillis();
-            y--;
+        if(key == KeyEvent.VK_SPACE) {
+            if(!this.isMarioJumping()) { // flag to stop double jumping when hitting
+                                         // space two times
+                this.setMarioJumpingState(true);
+                wp = new Physics();
+                initialJumpTime = System.currentTimeMillis();
+            }
         }
     }
     
+    /**
+     * Key release bindings
+     * 
+     * @param e 
+     */
     @Override
     public void keyReleased(KeyEvent e)
     {        
         int key = e.getKeyCode();
         
         if(key == KeyEvent.VK_RIGHT) {
-            image = images.get(0);
+            image = statesMap.get("standing");
         }
     }
     

@@ -21,13 +21,13 @@ public class Landscape
         rectangles = new ArrayList<Rectangle>();
         
         Random rand = new Random();
-        int first = rand.nextInt((800 - 1) + 1) + 1;
-        rectangles.add(new Rectangle(0, 800 - first, 1, first));
+        int first = rand.nextInt((Main.width - 1) + 1) + 1;
+        rectangles.add(new Rectangle(0, Main.width - first, 1, first));
         
         int d = first % 2;
         if(d == 0) d = -1;
 
-        for(int i = 1; i <= 800; i++) {
+        for(int i = 1; i <= Main.width; i++) {
             int choose = rand.nextInt((1000 - 1) + 1) + 1;
 
             if(choose > 950) {
@@ -40,7 +40,7 @@ public class Landscape
                 first -= 1;
             }
            
-            rectangles.add(new Rectangle(i, 800 - first, 1, first));
+            rectangles.add(new Rectangle(i, Main.width - first, 1, first));
         }
     }
     

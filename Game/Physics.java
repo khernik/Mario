@@ -50,7 +50,7 @@ public class Physics
         double t = (double)( System.currentTimeMillis() - startTime )/1000;
         
         int v = v0 + (int)Math.floor(a*t);
-        
+        System.out.println(-v);
         return (v < vk) ? (-v) : (-vk);
     }
     
@@ -59,6 +59,15 @@ public class Physics
         double t = (double)( System.currentTimeMillis() - startTime )/1000;
 
         int v = (int)Math.floor(v0 - gravity*t);
+
+        return v;
+    }
+    
+    public int gravitationalPull()
+    {
+        double t = (double)( System.currentTimeMillis() - startTime )/1000;
+
+        int v = (int)Math.floor(-gravity*t);
 
         return v;
     }

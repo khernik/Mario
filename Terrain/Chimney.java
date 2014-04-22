@@ -16,7 +16,7 @@ public class Chimney extends Terrain
     /**
      * @var Path to the texture
      */
-    private String pathToImage = "chimney.jpeg";
+    private String pathToImage = "chimney.gif";
     
     /**
      * Set image object
@@ -25,7 +25,8 @@ public class Chimney extends Terrain
         ImageIcon ii = new ImageIcon(pathToImage);
         texture = ii.getImage();
         
-        imageDim = 50;
+        imageDimX = 117;
+        imageDimY = 156;
     }
     
     /**

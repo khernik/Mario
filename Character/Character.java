@@ -26,7 +26,12 @@ abstract public class Character
     /**
      * @var The image of the character
      */
-    protected Image image;
+    protected ImageIcon image;
+    
+    /**
+     * @var Dimensions of the image
+     */
+    private int imageDim;
     
     /**
      * @var Is character curently visible on screen?
@@ -60,7 +65,27 @@ abstract public class Character
      */
     public Image getImage()
     {
-        return image;
+        return image.getImage();
+    }
+    
+    /**
+     * Return character's width based on the image
+     * 
+     * @return 
+     */
+    public int getImageWidth()
+    {
+        return image.getIconWidth();
+    }
+    
+    /**
+     * Return character's height based on the image
+     * 
+     * @return 
+     */
+    public int getImageHeight()
+    {
+        return image.getIconHeight();
     }
     
     /**

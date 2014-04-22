@@ -21,7 +21,17 @@ public class DestroyableBlock extends Terrain
     /**
      * Image displayed after mario hits the block
      */
-    private String destroyAnimationImagePath = "destroyableBlockDestroyed.jpeg";
+    private String destroyAnimationImagePath = "destroyableBlockDestroyed.gif";
+    
+    /**
+     * @var Was the block hit? (if it's destroyable block)
+     */
+    private boolean wasHit = false;
+    
+    /**
+     * @var Time when the block was hit in miliseconds
+     */
+    public long destroyTimer = 0;
     
     /**
      * @var Is destroyable block visible?
@@ -35,7 +45,8 @@ public class DestroyableBlock extends Terrain
         ImageIcon ii = new ImageIcon(pathToImage);
         texture = ii.getImage();
         
-        imageDim = 50;
+        imageDimX = 50;
+        imageDimY = 50;
     }
     
     /**
@@ -62,6 +73,16 @@ public class DestroyableBlock extends Terrain
         y2 += dy;
     }
     
+     /**
+     * Was the block hit?
+     * 
+     * @return
+     */
+    public boolean wasHit()
+    {
+        return wasHit;
+    }
+    
     /**
      * Displaying animation after mario hits the block
      */
@@ -69,6 +90,7 @@ public class DestroyableBlock extends Terrain
     {
         ImageIcon ii = new ImageIcon(destroyAnimationImagePath);
         texture = ii.getImage();
+        wasHit = true;
     }
     
 } // End DestroyableBlock

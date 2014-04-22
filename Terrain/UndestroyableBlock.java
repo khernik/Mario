@@ -25,7 +25,8 @@ public class UndestroyableBlock extends Terrain
         ImageIcon ii = new ImageIcon(pathToImage);
         texture = ii.getImage();
         
-        imageDim = 50;
+        imageDimX = 50;
+        imageDimY = 50;
     }
     
     /**

@@ -30,6 +30,11 @@ public class Board extends JPanel implements ActionListener
     private Timer timer;
     
     /**
+     * @var Animation speed
+     */
+    private int animationSpeed = 30;
+    
+    /**
      * @var Gravity constantly pushing mario down
      */
     private Physics gravity;
@@ -48,15 +53,18 @@ public class Board extends JPanel implements ActionListener
      * @var Where are terrain blocks?
      * 
      *      {x1,y1,x2,y2}
+     * 
+     * Pixels are for 800x600 natively
      */
-    private ListMultimap<String, int[]> terrainMap = ArrayListMultimap.create();
+    private ListMultimap<String, int[]> terrainMap = LinkedListMultimap.create();
     {
         terrainMap.put("Terrain.Ground", new int[] {0,100,300,0});
         terrainMap.put("Terrain.Ground", new int[] {300,200,400,0});
         terrainMap.put("Terrain.Ground", new int[] {400,250,800,0});
         terrainMap.put("Terrain.Ground", new int[] {800,500,810,0});
-        terrainMap.put("Terrain.Ground", new int[] {100,200,150,150});
-        terrainMap.put("Terrain.Ground", new int[] {500,400,600,350});
+        terrainMap.put("Terrain.DestroyableBlock", new int[] {100,200,150,150});
+        terrainMap.put("Terrain.DestroyableBlock", new int[] {500,400,600,350});
+        terrainMap.put("Terrain.Chimney", new int[] {650,400,800,220});
     };
     
     /**
@@ -72,13 +80,15 @@ public class Board extends JPanel implements ActionListener
         addKeyListener(new TAdapter());
         setFocusable(true);
         setDoubleBuffered(true);
-        setSize(800, 600);
-
+        setSize(Main.width, Main.height);
+        
+        scaleWorld();
+        
         // Create terrain objects out of tile matrix
         for (Map.Entry<String, int[]> entry : terrainMap.entries())
         {
             try {
-                //System.out.println(entry.getValue()[0]);
+                System.out.println(entry.getKey());
                 Class myClass = Class.forName(entry.getKey());
                 Class[] types = {int[].class};
                 Constructor constructor = myClass.getConstructor(types);
@@ -95,17 +105,34 @@ public class Board extends JPanel implements ActionListener
                 
             }
         }
-
+        
         // prepare background image
         landscape = new Landscape();
         
         // initialize main character on the given height
-        mario = new Mario(terrain.get(0).getY1() + 49);
+        mario = new Mario(terrain.get(0).getY1());
         
         gravity = new Physics();
         
-        timer = new Timer(30, this);
+        timer = new Timer(animationSpeed, this);
         timer.start();
+    }
+    
+    /**
+     * Scales the world matrix to adjust to the current resolution
+     */
+    private void scaleWorld()
+    {        
+        int hScale = (Main.height + 28)/600;
+        int wScale = Main.width/800;
+
+        for (Map.Entry<String, int[]> entry : terrainMap.entries())
+        {
+            entry.getValue()[0] /= wScale;
+            entry.getValue()[2] /= wScale;
+            entry.getValue()[1] /= hScale;
+            entry.getValue()[3] /= hScale;
+        }
     }
     
     /**
@@ -123,15 +150,27 @@ public class Board extends JPanel implements ActionListener
         landscape.draw(g);
         
         // Draw terrain elements
-        for(int i = 0; i < terrain.size(); i++) {
+        for(int i = 0; i < terrain.size(); i++) 
+        {
+            // handle destroyed blocks
+            if(terrain.get(i) instanceof DestroyableBlock) 
+            {
+                DestroyableBlock el = (DestroyableBlock)terrain.get(i);
+                if(el.wasHit())
+                {
+                    el.destroyTimer = (el.destroyTimer == 0) ? System.currentTimeMillis() : el.destroyTimer;
+                    if(System.currentTimeMillis() - el.destroyTimer > 200) terrain.remove(i);
+                }
+            }
             for(List<Integer> coords : terrain.get(i).divideIntoBlocks())
                 g2d.drawImage(terrain.get(i).getTexture(), coords.get(0), coords.get(1), null);
         }
-
+        
         // Draw mario
         g2d.drawImage(mario.getImage(), mario.getX(), mario.getY(), null);
     }
-    private int flag = 0;
+    
+    int flag = 0; // prevents timer update on every pixel change while jumping
     /**
      * Perform action on an event (key hit)
      * 
@@ -139,7 +178,7 @@ public class Board extends JPanel implements ActionListener
      */
     public void actionPerformed(ActionEvent e)
     {
-        mario.updateRelativePosition(50 - terrain.get(0).getX1());
+        mario.updateRelativeTerrainPosition(mario.getFixedPositionFromLeftScreenBorder() - terrain.get(0).getX1());
 
         if(!checkTerrainCollisions())
         {
@@ -153,18 +192,18 @@ public class Board extends JPanel implements ActionListener
             {
                 if(flag == 0) gravity.updateTime();
                 flag = 1;
-                mario.y -= gravity.gravitationalPull(0);
+                mario.y -= gravity.gravitationalPull();
             }
             else
             {
                 mario.jump();
             }
-        } 
-        else 
+        }
+        else
         {
             flag = 0;
         }
-        
+
         repaint();
     }
     
@@ -179,71 +218,24 @@ public class Board extends JPanel implements ActionListener
         boolean collides = false;
         
         for(int i = 0; i < terrain.size(); i++) {
-            collides = terrain.get(i).checkCollisions(
-                       mario.getRelativePosition(), 600 - mario.getY());
+            collides = terrain.get(i).checkCollisions(mario);
             if(collides) break;
         }
         
         return collides;
     }
-    private int flag1 = 0;
+    
     /**
      * Mario can't drop through the ground
      */
-    private boolean checkVerticalCollisions()
-    {
-        boolean collides = false;
-        
-        if(mario.isMarioJumping()) flag1 = 0;
-        
-        int i = 0;
-        for (Map.Entry<String, int[]> entry : terrainMap.entries())
-        {
-            if(mario.getRelativePosition() > entry.getValue()[0] && mario.getRelativePosition() < entry.getValue()[2]) 
-            {
-                if(550 - mario.getY() > entry.getValue()[1] - 12 && 550 - mario.getY() < entry.getValue()[1] || flag1 == 1)
-                {
-                    mario.y = 551 - entry.getValue()[1];
-                    collides = true;
-                    mario.jump = false;
-                    break;
-                }
-            }
-            i++;
-        }
-        
-        return collides;
-        
-        /*
-        // Calculate the height of the block mario is above
-        int height = 0, i = 0;
-        for (Map.Entry<String, int[]> entry : terrainMap.entries()) {
-            System.out.println(mario.getRelativePosition());
-            if(mario.getRelativePosition() > entry.getValue()[0] && mario.getRelativePosition() < entry.getValue()[2]) {
-                    int tmp = terrain.get(i).getY1();
-                    if(tmp >= 600-mario.getY()-50 && tmp >= height)
-                            height = tmp;
-            }
-            i++;
-        }
-        System.out.println(height);
-        height = 550 - height;
-        
-        if( mario.getY() > height) {
-            mario.jump = false;
-            mario.y -= 8;
-            flag = 0;
-        } else {
-            if(mario.isMarioJumping())
-            {
-                mario.jump();
-            } else {
-                flag = 1;
-                mario.y -= gravity.gravitationalPull(0);
-            }
-        }*/
+    private boolean checkMarioCollisions()
+    {        
+        return mario.checkCollisions(terrainMap, terrain);
     }
     
+    /**
+     * Class handling key events
+     */
     private class TAdapter extends KeyAdapter
     {
         

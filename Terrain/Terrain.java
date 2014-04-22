@@ -6,7 +6,7 @@ import javax.swing.*;
 import java.util.List;
 import java.util.ArrayList;
 import java.awt.event.KeyEvent;
-import Game.Physics;
+import Game.*;
 
 /**
  * Class responsible for displaying terrain elements
@@ -32,9 +32,14 @@ public abstract class Terrain
     protected Image texture;
     
     /**
-     * @var Dimension of the texture
+     * @var Height imension of the texture
      */
-    protected int imageDim;
+    protected int imageDimX;
+    
+    /**
+     * @var Width dimension of the texture
+     */
+    protected int imageDimY;
     
     /**
      * @var Physics used to accelerate movement - refreshing time
@@ -146,17 +151,17 @@ public abstract class Terrain
     {
         List<List<Integer> > coords = new ArrayList< List<Integer> >();
         
-        for(int i = 0; i < getHeight()/imageDim; i++)
+        for(int i = 0; i < getHeight()/imageDimY; i++)
         {
-            for(int j = 0; j < getWidth()/imageDim; j++)
+            for(int j = 0; j < getWidth()/imageDimX; j++)
             {
                 coords.add(new ArrayList<Integer>());
                 
-                int x = getX1() + (imageDim*j);
-                int y = 572 - (getY1() - (imageDim*i));
+                int x = getX1() + (imageDimX*j);
+                int y = Main.height - (getY1() - (imageDimY*i));
                 
-                coords.get((i*getWidth()/imageDim)+j).add(x);
-                coords.get((i*getWidth()/imageDim)+j).add(y);
+                coords.get((i*getWidth()/imageDimY)+j).add(x);
+                coords.get((i*getWidth()/imageDimY)+j).add(y);
             }
         }
 
@@ -170,16 +175,20 @@ public abstract class Terrain
      * @param marioX
      * @param marioY 
      */
-    public boolean checkCollisions(int marioX, int marioY)
+    public boolean checkCollisions(Mario mario)
     {
-        // To get initial block x1 position
-        int X1 = getX1() + (marioX - 50);
-
-        boolean collisionWithLeftBorder = ( ( (marioX + 15) > (X1 - 6) && (marioX + 15) < (X1 + 6) )
-                                            && marioY - 49 < getY1() && marioY - 49 > getY2())
-                                            ? true : false;
+        // Find initial block x1 position
+        int initX1 = getX1() + (mario.getRelativeTerrainPosition() - mario.getFixedPositionFromLeftScreenBorder());
         
-        return collisionWithLeftBorder;
+        // Collisions of x coordinates with left border
+        boolean xCoords = ( mario.getRelativeTerrainPosition() + mario.getImageWidth() > (initX1 - 6) &&
+                            mario.getRelativeTerrainPosition() + mario.getImageWidth() < (initX1 + 6));
+        
+        // Collisions of y coordinates with left border
+        boolean yCoords = ( Main.height - mario.getY() - mario.getImageHeight() < getY1() &&
+                            Main.height - mario.getY() - mario.getImageHeight() > getY2());
+        
+        return ( xCoords && yCoords ) ? true : false;
     }
     
     /**
@@ -208,7 +217,7 @@ public abstract class Terrain
         int key = e.getKeyCode();
 
         if (key == KeyEvent.VK_RIGHT) {
-            wp = new Physics(); // refresh timer on -> release
+            wp = null; // refresh timer on -> release
             dx = 0;
         }
     }
