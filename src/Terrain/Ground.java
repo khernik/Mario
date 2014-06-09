@@ -25,7 +25,7 @@ public class Ground extends Terrain
     {
         ImageIcon ii = new ImageIcon(pathToImage);
         texture = ii.getImage();
-        System.out.println(Main.height+28);
+
         // Default resolutions
         imageDimX = 50;
         imageDimY = 50;
@@ -38,7 +38,6 @@ public class Ground extends Terrain
      */
     public Ground(int[] coords)
     {
-        //System.out.println(coords[0]);
         x1 = coords[0];
         y1 = coords[1];
         x2 = coords[2];
@@ -46,7 +45,7 @@ public class Ground extends Terrain
     }
     
     /**
-     * Move that block
+     * Move block
      */
     public void move()
     {

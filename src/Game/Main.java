@@ -27,25 +27,14 @@ public class Main extends JFrame
     
     static 
     {
-        height -= 28; // no idea why but it works
+        height -= 28;
     }
-    
-    /**
-     * @var Possible screen resolutions
-     */
-    private static int[][] possibleResolutions = {
-        {800,600},
-        {1024,768},
-        {1280,1024},
-        {1680,1050},
-        {1920,1080},
-    };
     
     /**
      * Create the frame
      */
     public Main()
-    {
+    {        
         add(new Board());
         setSize(width, height);
         setTitle("Mario by khernik");
@@ -55,7 +44,7 @@ public class Main extends JFrame
     }
     
     /**
-     * @param args the command line arguments
+     * @param args command line arguments
      */
     public static void main(String[] args)
     {

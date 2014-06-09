@@ -183,8 +183,8 @@ public abstract class Terrain
      * Check collisions with the left border, and if true, stops the
      * movement
      * 
-     * @param marioX
-     * @param marioY 
+     * @param mario
+     * @return  
      */
     public boolean checkCollisions(Mario mario)
     {

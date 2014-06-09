@@ -43,7 +43,7 @@ public class Mario extends Character
     
     /**
      * @var Distance from the left border of the frame (in pixels) - it's the
-     *      initial position on which mario is when the game is started
+     *      initial position on which mario stands while the game is being started
      */
     private int fixedPositionFromLeftScreenBorder = 50;
     
@@ -59,7 +59,7 @@ public class Mario extends Character
     {
         statesMap = new HashMap<String, ImageIcon>();
         statesMap.put("standing", new ImageIcon("images/standing-mario800.gif"));
-        statesMap.put("running", new ImageIcon("images/standing-mario800.gif"));
+        statesMap.put("running", new ImageIcon("images/running-mario800.gif"));
     };
     
     /**
@@ -68,18 +68,18 @@ public class Mario extends Character
     private boolean jump = false;
     
     /**
-     * @var Has mario bumped from something?
+     * @var Has mario bumped into something?
      */
     private boolean bump = false;
     
     /**
      * @var Initial jump time in milliseconds, difference used for wp
-     * @see Physics wp attribute
      */
     private long initialJumpTime;
     
     /**
      * @var The direction of the movement
+     * r - right, l - left
      */
     private char direction = 'r';
     
@@ -92,11 +92,6 @@ public class Mario extends Character
      * @var Running physics timer
      */
     private Physics wpRunning;
-    
-    /**
-     * @var How much money does mario have?
-     */
-    private int money = 0;
     
     /**
      * Initialize mario
@@ -123,7 +118,7 @@ public class Mario extends Character
     /**
      * Returns relative to the surface horizontal coordinates of where mario is
      * 
-     * @return 
+     * @return position
      */
     public int getRelativeTerrainPosition()
     {
@@ -133,7 +128,7 @@ public class Mario extends Character
     /**
      * Returns mario's position from the left screen border
      * 
-     * @return 
+     * @return position
      */
     public int getFixedPositionFromLeftScreenBorder()
     {
@@ -143,11 +138,11 @@ public class Mario extends Character
     /**
      * Can mario move through the screen?
      * 
-     * @return 
+     * @return boolean
      */
     public boolean isMarioMovingThroughTheScreen()
     {
-        // Prevent **** if space key is hit while moving
+        // Prevent bugs if space key is hit while moving
         if(getX() + 15 < getFixedPositionFromLeftScreenBorder())
         {
             x = getFixedPositionFromLeftScreenBorder();
@@ -163,9 +158,9 @@ public class Mario extends Character
     }
     
     /**
-     * Can mario move left?
+     * Can mario move to the left?
      * 
-     * @return
+     * @return boolean
      */
     private boolean canMarioMoveLeft()
     {
@@ -173,9 +168,9 @@ public class Mario extends Character
     }
     
     /**
-     * Can mario move right?
+     * Can mario move to the right?
      * 
-     * @return
+     * @return boolean
      */
     private boolean canMarioMoveRight()
     {
@@ -185,8 +180,7 @@ public class Mario extends Character
     /**
      * In which direction is mario currently moving?
      * 
-     * @return
-     * @see key events
+     * @return direction (r - right, l - left)
      */
     public char getDirection()
     {
@@ -196,7 +190,7 @@ public class Mario extends Character
     /**
      * Move mario
      * 
-     * @param int Position x coordinate
+     * @param pos
      */
     public void updateRelativeTerrainPosition(int pos)
     {
@@ -206,7 +200,7 @@ public class Mario extends Character
     /**
      * Has mario jumped?
      * 
-     * @return 
+     * @return boolean
      */
     public boolean isMarioJumping()
     {
@@ -214,9 +208,9 @@ public class Mario extends Character
     }
     
     /**
-     * Has mario bumped?
+     * Has mario bumped into something?
      * 
-     * @return 
+     * @return boolean
      */
     public boolean hasMarioBumped()
     {
@@ -264,7 +258,8 @@ public class Mario extends Character
      * Check collisions
      * 
      * @param terrainMap
-     * @return 
+     * @param terrain
+     * @return boolean Collides or not? 
      */
     public boolean checkCollisions(ListMultimap<String, int[]> terrainMap, List<Terrain> terrain)
     {
@@ -298,9 +293,6 @@ public class Mario extends Character
                     if(terrain.get(i) instanceof DestroyableBlock) {
                         ((DestroyableBlock)terrain.get(i)).hit();
                         terrainMap.remove(entry.getKey(), entry.getValue());
-                    }
-                    if(terrain.get(i) instanceof BonusBlock) {
-                        ((BonusBlock)terrain.get(i)).hit();
                     }
                     break;
                 }

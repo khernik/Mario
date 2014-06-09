@@ -8,14 +8,21 @@ import java.util.Random;
 import java.util.ArrayList;
 
 /**
- *
+ * Generate mountains background image
+ * 
  * @author khernik
  */
 public class Landscape 
 {
     
+    /**
+     * @var rectangles array
+     */
     private List<Rectangle> rectangles;
 
+    /**
+     * Prepare the image
+     */
     public Landscape()
     {
         rectangles = new ArrayList<Rectangle>();
@@ -44,6 +51,11 @@ public class Landscape
         }
     }
     
+    /**
+     * Draw the image
+     * 
+     * @param g
+     */
     public void draw(Graphics g) 
     {
         Graphics2D g2d = (Graphics2D) g;

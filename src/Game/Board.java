@@ -40,12 +40,12 @@ public class Board extends JPanel implements ActionListener
     private Physics gravity;
     
     /**
-     * @var Mario himself
+     * @var Mario
      */
     private Mario mario;
     
     /**
-     * @var Mountain background
+     * @var Mountains' background
      */
     private Landscape landscape;
 
@@ -63,9 +63,9 @@ public class Board extends JPanel implements ActionListener
         terrainMap.put("Terrain.Ground", new int[] {300,200,400,0});
         terrainMap.put("Terrain.Ground", new int[] {400,250,800,0});
         terrainMap.put("Terrain.Ground", new int[] {800,500,810,0});
-        terrainMap.put("Terrain.BonusBlock", new int[] {100,200,150,150});
+        terrainMap.put("Terrain.DestroyableBlock", new int[] {100,200,150,150});
         terrainMap.put("Terrain.DestroyableBlock", new int[] {500,400,600,350});
-        terrainMap.put("Terrain.Chimney", new int[] {650,400,800,220});
+        terrainMap.put("Terrain.Chimney", new int[] {650,370,740,250});
     };
     
     /**
@@ -139,7 +139,6 @@ public class Board extends JPanel implements ActionListener
      * Paints all elements on the board
      * 
      * @param g
-     * @TODO fixed height while drawing blocks
      */
     public void paintComponent(Graphics g)
     {
@@ -218,7 +217,7 @@ public class Board extends JPanel implements ActionListener
      * Mario can't walk through the walls - checks collisions of mario
      * with the next block
      * 
-     * @return
+     * @return boolean
      */
     private boolean checkTerrainCollisions()
     {
@@ -234,6 +233,8 @@ public class Board extends JPanel implements ActionListener
     
     /**
      * Mario can't drop through the ground
+     * 
+     * @return boolean
      */
     private boolean checkMarioCollisions()
     {        

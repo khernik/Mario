@@ -28,8 +28,6 @@ public class Physics
     
     /**
      * Updates start time
-     * 
-     * @param t 
      */
     public void updateTime()
     {
@@ -42,7 +40,9 @@ public class Physics
      *      a = v/t
      *      v = v0 + at
      * 
-     * @param t
+     * @param a
+     * @param v0
+     * @param vk
      * @return next step
      */
     public int accelerate(double a, int v0, int vk)
@@ -54,6 +54,12 @@ public class Physics
         return (v < vk) ? (-v) : (-vk);
     }
     
+    /**
+     * Jumping with v0 != 0
+     * 
+     * @param v0
+     * @return velocity
+     */
     public int gravitationalPull(int v0)
     {
         double t = (double)( System.currentTimeMillis() - startTime )/1000;
@@ -63,6 +69,11 @@ public class Physics
         return v;
     }
     
+    /**
+     * Jumping with v0 = 0
+     * 
+     * @return velocity
+     */
     public int gravitationalPull()
     {
         double t = (double)( System.currentTimeMillis() - startTime )/1000;
@@ -72,4 +83,4 @@ public class Physics
         return v;
     }
     
-} // End WorldPhysics
+} // End Physics

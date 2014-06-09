@@ -7,7 +7,8 @@ import javax.swing.ImageIcon;
 import java.util.ArrayList;
 
 /**
- *
+ * Characters base class
+ * 
  * @author khernik
  */
 abstract public class Character
